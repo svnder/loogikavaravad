@@ -29,9 +29,14 @@ h1{font-family:var(--display);font-style:italic;font-weight:500;font-size:32px;m
 .seg button{flex:1;border:0;background:transparent;color:var(--muted);font:600 14px var(--body);padding:10px 4px;border-radius:9px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
 .tabs{display:flex;gap:8px}
-.tabs button{flex:1;border:1.5px solid var(--line);background:var(--card);color:var(--muted);font:800 17px var(--body);padding:11px 0;border-radius:10px;cursor:pointer;letter-spacing:.04em}
+.tabs button{flex:1;min-width:0;border:1.5px solid var(--line);background:var(--card);color:var(--muted);font:800 16px var(--body);padding:10px 0;border-radius:10px;cursor:pointer;letter-spacing:.04em}
 .tabs button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
-.tabs small{display:block;font-weight:600;font-size:11px;letter-spacing:0;margin-top:2px}
+.tabs small{display:block;font-weight:600;font-size:10.5px;letter-spacing:0;margin-top:2px}
+.mix{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:14.5px}
+.mix .h{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mix .row{display:flex;justify-content:space-between;gap:10px;font-variant-numeric:tabular-nums}
+.mix .row b{color:var(--accent)}
+.mix .row.res{border-top:1.5px solid var(--line);padding-top:6px;font-weight:700}
 button:focus-visible{outline:3px solid var(--on);outline-offset:2px}
 
 .rule{background:var(--card);border-left:4px solid var(--accent);border-radius:8px;padding:12px 14px;line-height:1.45;font-size:15.5px}
@@ -89,6 +94,7 @@ tr:hover td{background:var(--accent-soft)}
   </div>
 
   <div class="hint" id="hint" hidden></div>
+  <div class="mix" id="mix" hidden></div>
 
   <div class="tl" id="tl">Kõik võimalused</div>
   <div class="tbl"><table id="tbl"></table></div>
@@ -98,8 +104,8 @@ tr:hover td{background:var(--accent-soft)}
 <script>
 (function(){
 const VIEWS=[["elu","Igapäevaelu"],["arvuti","Arvutis"],["signaal","Signaalid"]];
-const GATES={AND:"JA",OR:"VÕI",NOT:"EI"};
-const fn={AND:(a,b)=>a&&b?1:0, OR:(a,b)=>a||b?1:0, NOT:(a)=>a?0:1};
+const GATES={AND:"JA",OR:"VÕI",NOT:"EI",XOR:"välistav VÕI"};
+const fn={AND:(a,b)=>a&&b?1:0, OR:(a,b)=>a||b?1:0, NOT:(a)=>a?0:1, XOR:(a,b)=>a!==b?1:0};
 
 /* Scenario text per gate and view. in: [label, text when 1, text when 0]; out: [label, text 1, text 0], icon */
 const S={
@@ -128,6 +134,15 @@ const S={
        ins:[["Hiir liigub","jah","ei"]], out:["Ekraan","Lukus","Lahti"], icon:"screen", col:"Lukus?"},
   signaal:{rule:'Lamp põleb siis, kui lüliti on <b>väljas</b>. Vastus on alati vastupidine.',
        ins:[["Lüliti A","sees","väljas"]], out:["Lamp","Lamp põleb","Lamp ei põle"], icon:"lamp", col:"Lamp", short:["A"]}
+ },
+ XOR:{
+  elu:{rule:'Koridori mõlemas otsas on lüliti. Tuli põleb, kui lülitid on <b>erinevas asendis</b>. Iga vajutus lülitab tule ümber.',
+       ins:[["Lüliti koridori alguses","üleval","all"],["Lüliti koridori lõpus","üleval","all"]], out:["Koridori tuli","Tuli põleb","Tuli ei põle"], icon:"lamp", col:"Tuli põleb?", short:["Algus","Lõpp"]},
+  arvuti:{rule:'Täht tuleb suurena, kui on sees <b>Caps Lock või Shift, aga mitte mõlemad</b>.',
+       ins:[["Caps Lock","sees","väljas"],["Shift","all","üleval"]], out:["Trükin tähe","A","a"], icon:"letter", col:"Suurtäht?",
+       hint:'Proovi päris klaviatuuriga: lülita <kbd>Caps Lock</kbd> ja hoia <kbd>Shift</kbd>. Nii käitub Windows, Macis annab Caps Lock koos Shiftiga ikka suurtähe.'},
+  signaal:{rule:'Lamp põleb, kui <b>täpselt üks lüliti</b> on sees.',
+       ins:[["Lüliti A","sees","väljas"],["Lüliti B","sees","väljas"]], out:["Lamp","Lamp põleb","Lamp ei põle"], icon:"lamp", col:"Lamp", short:["A","B"]}
  }
 };
 
@@ -140,6 +155,7 @@ const ICON={
  pay:on=>'<svg viewBox="0 0 64 64"><rect x="6" y="16" width="52" height="34" rx="5" fill="'+(on?'var(--on)':'var(--card)')+'" stroke="currentColor" stroke-width="3"/><line x1="6" y1="26" x2="58" y2="26" stroke="currentColor" stroke-width="3"/>'+(on?'<path d="M22 38 l6 6 l13 -13" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>':'')+'</svg>',
  send:on=>'<svg viewBox="0 0 64 64"><path d="M6 30 L58 8 L44 56 L30 38 Z" fill="'+(on?'var(--on)':'var(--card)')+'" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M30 38 L58 8" stroke="currentColor" stroke-width="3"/></svg>',
  street:on=>'<svg viewBox="0 0 64 64">'+(on?'<path d="M40 16 L26 58 L54 58 Z" fill="var(--on)" opacity=".35"/>':'')+'<path d="M16 60 L16 10 Q16 6 22 6 L40 6" fill="none" stroke="currentColor" stroke-width="3.5"/><rect x="32" y="6" width="16" height="10" rx="3" fill="'+(on?'var(--on)':'var(--card)')+'" stroke="currentColor" stroke-width="3"/></svg>',
+ letter:on=>'<svg viewBox="0 0 64 64"><rect x="8" y="8" width="48" height="48" rx="8" fill="'+(on?'var(--on)':'var(--card)')+'" stroke="currentColor" stroke-width="3"/><text x="32" y="'+(on?44:42)+'" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="'+(on?30:28)+'" text-anchor="middle" fill="currentColor">'+(on?'A':'a')+'</text></svg>',
  screen:on=>'<svg viewBox="0 0 64 64"><rect x="6" y="8" width="52" height="36" rx="4" fill="'+(on?'var(--on)':'var(--card)')+'" stroke="currentColor" stroke-width="3"/><path d="M24 56 L40 56 M32 44 L32 56" stroke="currentColor" stroke-width="3"/>'+(on?'<rect x="26" y="24" width="12" height="10" rx="2" fill="currentColor"/><path d="M28 24 v-4 a4 4 0 0 1 8 0 v4" fill="none" stroke="currentColor" stroke-width="2.5"/>':'')+'</svg>'
 };
 
@@ -168,6 +184,17 @@ function render(){
   const o=$("out"); o.classList.toggle("on",!!r); o.style.color="var(--fg)";
   o.innerHTML=ICON[sc.icon](r)+`<span class="big">${r?sc.out[1]:sc.out[2]}</span><span class="bit">vastus ${r}</span>`;
   const h=$("hint"); if(sc.hint){h.innerHTML=sc.hint;h.hidden=false}else h.hidden=true;
+  const mx=$("mix");
+  if(st.gate==="XOR"){
+    const a=st.in[0],b=st.in[1],o=a||b?1:0,y=a&&b?1:0,ny=y?0:1;
+    const [A,B]=(sc.short||["A","B"]);
+    mx.innerHTML='<span class="h">Kuidas see on kokku pandud</span>'+
+      `<div class="row"><span>${A} VÕI ${B}</span><b>${o}</b></div>`+
+      `<div class="row"><span>${A} JA ${B}</span><b>${y}</b></div>`+
+      `<div class="row"><span>EI (${A} JA ${B})</span><b>${ny}</b></div>`+
+      `<div class="row res"><span>${o} JA ${ny}</span><b>${r}</b></div>`;
+    mx.hidden=false;
+  } else mx.hidden=true;
   $("tl").textContent=st.view==="signaal"?"Tõeväärtustabel":"Kõik võimalused";
   const heads=(sc.short||sc.ins.map(x=>x[0])).slice(0,k);
   let rows=[]; for(let m=0;m<(1<<k);m++){const v=k===1?[m]:[m>>1&1,m&1]; rows.push(v)}
@@ -191,13 +218,17 @@ function key(e,down){
   if(st.gate==="AND"){
     if(e.key==="Control"){st.in[0]=down?1:0;render()}
     else if(e.key&&e.key.toLowerCase()==="c"){st.in[1]=down?1:0;if(!down)st.in[0]=e.ctrlKey?1:st.in[0];render()}
+  } else if(st.gate==="XOR"){
+    if(e.getModifierState){st.in[0]=e.getModifierState("CapsLock")?1:0}
+    if(e.key==="Shift"){st.in[1]=down?1:0}
+    render();
   } else if(st.gate==="OR" && e.key==="Enter" && !(e.target.closest&&e.target.closest("button"))){
     st.in[0]=down?1:0;render();
   }
 }
 addEventListener("keydown",e=>key(e,true));
 addEventListener("keyup",e=>key(e,false));
-addEventListener("blur",()=>{if(st.view==="arvuti"&&st.gate!=="NOT"){st.in=[0,0];render()}});
+addEventListener("blur",()=>{if(st.view==="arvuti"&&(st.gate==="AND"||st.gate==="OR")){st.in=[0,0];render()}});
 
 build();
 })();
