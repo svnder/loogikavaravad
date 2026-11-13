@@ -1,0 +1,206 @@
+<!doctype html><html lang="et"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>body{margin:0}[hidden]{display:none!important}</style></head><body>
+<title>Loogikaväravate liivakast</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@1,500&family=Inter:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: one narrow column, phone first. Gate scene in the middle, truth table under it. */
+:root{
+  --bg:#f8f4f3; --card:#ffffff; --fg:#1f1515; --muted:#7a6868; --line:#ead6d6;
+  --accent:#8b1a1a; --accent-soft:#f6e1e1; --on:#e9a91c; --on-soft:#fff3d6; --ok:#2e7a4d;
+  --display:"EB Garamond", Georgia, serif; --body:"Inter", "Helvetica Neue", Arial, sans-serif;
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#171112; --card:#221a1b; --fg:#f3e9e9; --muted:#b39f9f; --line:#3d2b2c;
+  --accent:#e0726f; --accent-soft:#3a2021; --on:#f2bd45; --on-soft:#3b3020; --ok:#6cc392; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#171112; --card:#221a1b; --fg:#f3e9e9; --muted:#b39f9f; --line:#3d2b2c;
+  --accent:#e0726f; --accent-soft:#3a2021; --on:#f2bd45; --on-soft:#3b3020; --ok:#6cc392; color-scheme:dark }
+
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px}
+.wrap{max-width:560px;margin:0 auto;padding-block:20px 40px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--display);font-style:italic;font-weight:500;font-size:32px;margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:14px;margin:-10px 0 0}
+
+.seg{display:flex;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:transparent;color:var(--muted);font:600 14px var(--body);padding:10px 4px;border-radius:9px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.tabs{display:flex;gap:8px}
+.tabs button{flex:1;border:1.5px solid var(--line);background:var(--card);color:var(--muted);font:800 17px var(--body);padding:11px 0;border-radius:10px;cursor:pointer;letter-spacing:.04em}
+.tabs button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.tabs small{display:block;font-weight:600;font-size:11px;letter-spacing:0;margin-top:2px}
+button:focus-visible{outline:3px solid var(--on);outline-offset:2px}
+
+.rule{background:var(--card);border-left:4px solid var(--accent);border-radius:8px;padding:12px 14px;line-height:1.45;font-size:15.5px}
+.rule b{color:var(--accent)}
+
+.scene{display:grid;grid-template-columns:1fr 64px 1fr;gap:10px;align-items:center}
+.ins{display:flex;flex-direction:column;gap:10px;min-width:0}
+.in{background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);padding:10px 12px;cursor:pointer;text-align:left;font:inherit;color:inherit;display:flex;flex-direction:column;gap:6px;width:100%}
+.in .lbl{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;width:100%}
+.in .bit{font-variant-numeric:tabular-nums;font-weight:800;color:var(--accent)}
+.tog{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
+.sw{width:42px;height:24px;border-radius:12px;background:var(--line);position:relative;flex:none;transition:background .15s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.in[aria-pressed="true"] .sw{background:var(--accent)}
+.in[aria-pressed="true"] .sw::after{left:21px}
+.in[aria-pressed="true"]{border-color:var(--accent)}
+
+.gate{height:100px;border:3px solid var(--accent);background:var(--accent-soft);border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent);font-size:16px;letter-spacing:.04em}
+.out{background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0;transition:background .2s,border-color .2s}
+.out.on{background:var(--on-soft);border-color:var(--on)}
+.out .big{font-weight:700;font-size:15px}
+.out .bit{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.out svg{width:64px;height:64px}
+
+.hint{font-size:13px;color:var(--muted);background:var(--card);border:1.5px dashed var(--line);border-radius:10px;padding:10px 12px}
+.hint kbd{font:700 12px var(--body);border:1.5px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:1px 6px;background:var(--bg);color:var(--fg)}
+
+.tl{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:-8px}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border:1.5px solid var(--line);border-radius:12px;overflow:hidden;font-variant-numeric:tabular-nums}
+th{background:var(--accent);color:#fff;font-weight:600;font-size:13.5px;padding:9px 6px}
+td{text-align:center;padding:9px;border-top:1px solid var(--line);font-weight:700;cursor:pointer}
+td.o{color:var(--accent)}
+tr.cur td{background:var(--accent-soft);color:var(--accent)}
+tr:hover td{background:var(--accent-soft)}
+.foot{font-size:12.5px;color:var(--muted);text-align:center;margin-top:4px}
+
+@media (max-width:380px){ .scene{grid-template-columns:1fr 50px 1fr} .gate{font-size:13px} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+
+<div class="wrap">
+  <h1>Loogikaväravad</h1>
+  <p class="sub">Klõpsa sisenditel ja vaata, mis juhtub.</p>
+
+  <div class="seg" role="group" aria-label="Vaade" id="views"></div>
+  <div class="tabs" role="group" aria-label="Värav" id="gates"></div>
+
+  <div class="rule" id="rule"></div>
+
+  <div class="scene">
+    <div class="ins" id="ins"></div>
+    <div class="gate" id="gate"></div>
+    <div class="out" id="out" aria-live="polite"></div>
+  </div>
+
+  <div class="hint" id="hint" hidden></div>
+
+  <div class="tl" id="tl">Kõik võimalused</div>
+  <div class="tbl"><table id="tbl"></table></div>
+  <p class="foot">Klõpsa tabeli real, et seada sisendid selleks olukorraks.</p>
+</div>
+
+<script>
+(function(){
+const VIEWS=[["elu","Igapäevaelu"],["arvuti","Arvutis"],["signaal","Signaalid"]];
+const GATES={AND:"JA",OR:"VÕI",NOT:"EI"};
+const fn={AND:(a,b)=>a&&b?1:0, OR:(a,b)=>a||b?1:0, NOT:(a)=>a?0:1};
+
+/* Scenario text per gate and view. in: [label, text when 1, text when 0]; out: [label, text 1, text 0], icon */
+const S={
+ AND:{
+  elu:{rule:'Uksehoidja laseb sisse ainult siis, kui on <b>pilet ja pass</b>.',
+       ins:[["Pilet","olemas","puudub"],["Pass","olemas","puudub"]], out:["Lasen sisse?","Uks avatud","Uks kinni"], icon:"door", col:"Lasen sisse?"},
+  arvuti:{rule:'Tekst kopeeritakse ainult siis, kui <b>Ctrl ja C</b> on korraga all.',
+       ins:[["Ctrl","all","üleval"],["C","all","üleval"]], out:["Kopeeri","Tekst kopeeritud","Ei juhtu midagi"], icon:"copy", col:"Kopeeritud?",
+       hint:'Proovi päris klaviatuuriga. Hoia all <kbd>Ctrl</kbd> ja vajuta <kbd>C</kbd>.'},
+  signaal:{rule:'Lamp põleb ainult siis, kui <b>mõlemad lülitid</b> on sees.',
+       ins:[["Lüliti A","sees","väljas"],["Lüliti B","sees","väljas"]], out:["Lamp","Lamp põleb","Lamp ei põle"], icon:"lamp", col:"Lamp", short:["A","B"]}
+ },
+ OR:{
+  elu:{rule:'Poes saad maksta, kui sul on <b>kaart või sularaha</b>. Piisab ühest.',
+       ins:[["Kaart","olemas","puudub"],["Sularaha","olemas","puudub"]], out:["Saad maksta?","Makstud","Ei saa maksta"], icon:"pay", col:"Saad maksta?"},
+  arvuti:{rule:'Vorm saadetakse ära, kui vajutad <b>Enterit või klõpsad nupul</b>. Piisab ühest.',
+       ins:[["Enter","vajutatud","ei"],["Hiireklõps","tehtud","ei"]], out:["Saada","Vorm saadetud","Ootab"], icon:"send", col:"Saadetud?",
+       hint:'Proovi päris klaviatuuriga. Hoia all <kbd>Enter</kbd>.'},
+  signaal:{rule:'Lamp põleb, kui <b>vähemalt üks lüliti</b> on sees.',
+       ins:[["Lüliti A","sees","väljas"],["Lüliti B","sees","väljas"]], out:["Lamp","Lamp põleb","Lamp ei põle"], icon:"lamp", col:"Lamp", short:["A","B"]}
+ },
+ NOT:{
+  elu:{rule:'Tänavavalgus põleb siis, kui <b>ei ole päev</b>. Vastus on alati vastupidine.',
+       ins:[["Päev","on päev","on öö"]], out:["Tänavavalgus","Põleb","Ei põle"], icon:"street", col:"Põleb?"},
+  arvuti:{rule:'Ekraan lukustub, kui hiir <b>ei liigu</b>. Vastus on alati vastupidine.',
+       ins:[["Hiir liigub","jah","ei"]], out:["Ekraan","Lukus","Lahti"], icon:"screen", col:"Lukus?"},
+  signaal:{rule:'Lamp põleb siis, kui lüliti on <b>väljas</b>. Vastus on alati vastupidine.',
+       ins:[["Lüliti A","sees","väljas"]], out:["Lamp","Lamp põleb","Lamp ei põle"], icon:"lamp", col:"Lamp", short:["A"]}
+ }
+};
+
+const ICON={
+ door:on=>on
+  ?'<svg viewBox="0 0 64 64"><rect x="14" y="6" width="36" height="54" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><path d="M14 6 L32 12 L32 58 L14 60 Z" fill="var(--on)" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><circle cx="28" cy="34" r="2.5" fill="currentColor"/></svg>'
+  :'<svg viewBox="0 0 64 64"><rect x="14" y="6" width="36" height="54" rx="3" fill="var(--card)" stroke="currentColor" stroke-width="3"/><circle cx="42" cy="34" r="2.5" fill="currentColor"/></svg>',
+ lamp:on=>'<svg viewBox="0 0 64 64">'+(on?'<circle cx="32" cy="26" r="25" fill="var(--on)" opacity=".25"/>':'')+'<circle cx="32" cy="26" r="17" fill="'+(on?'var(--on)':'var(--card)')+'" stroke="currentColor" stroke-width="3"/><rect x="24" y="44" width="16" height="12" rx="2" fill="currentColor"/></svg>',
+ copy:on=>'<svg viewBox="0 0 64 64"><rect x="20" y="14" width="30" height="38" rx="4" fill="var(--card)" stroke="currentColor" stroke-width="3"/><rect x="12" y="6" width="30" height="38" rx="4" fill="'+(on?'var(--on)':'var(--card)')+'" stroke="currentColor" stroke-width="3"/>'+(on?'<path d="M19 25 l6 6 l11 -12" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>':'')+'</svg>',
+ pay:on=>'<svg viewBox="0 0 64 64"><rect x="6" y="16" width="52" height="34" rx="5" fill="'+(on?'var(--on)':'var(--card)')+'" stroke="currentColor" stroke-width="3"/><line x1="6" y1="26" x2="58" y2="26" stroke="currentColor" stroke-width="3"/>'+(on?'<path d="M22 38 l6 6 l13 -13" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>':'')+'</svg>',
+ send:on=>'<svg viewBox="0 0 64 64"><path d="M6 30 L58 8 L44 56 L30 38 Z" fill="'+(on?'var(--on)':'var(--card)')+'" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M30 38 L58 8" stroke="currentColor" stroke-width="3"/></svg>',
+ street:on=>'<svg viewBox="0 0 64 64">'+(on?'<path d="M40 16 L26 58 L54 58 Z" fill="var(--on)" opacity=".35"/>':'')+'<path d="M16 60 L16 10 Q16 6 22 6 L40 6" fill="none" stroke="currentColor" stroke-width="3.5"/><rect x="32" y="6" width="16" height="10" rx="3" fill="'+(on?'var(--on)':'var(--card)')+'" stroke="currentColor" stroke-width="3"/></svg>',
+ screen:on=>'<svg viewBox="0 0 64 64"><rect x="6" y="8" width="52" height="36" rx="4" fill="'+(on?'var(--on)':'var(--card)')+'" stroke="currentColor" stroke-width="3"/><path d="M24 56 L40 56 M32 44 L32 56" stroke="currentColor" stroke-width="3"/>'+(on?'<rect x="26" y="24" width="12" height="10" rx="2" fill="currentColor"/><path d="M28 24 v-4 a4 4 0 0 1 8 0 v4" fill="none" stroke="currentColor" stroke-width="2.5"/>':'')+'</svg>'
+};
+
+const st={view:"elu",gate:"AND",in:[1,0]};
+try{const s=JSON.parse(localStorage.getItem("lv")||"null"); if(s&&S[s.gate]&&S[s.gate][s.view]){st.view=s.view;st.gate=s.gate}}catch(e){}
+const save=()=>{try{localStorage.setItem("lv",JSON.stringify({view:st.view,gate:st.gate}))}catch(e){}};
+const $=id=>document.getElementById(id);
+
+function build(){
+  $("views").innerHTML=VIEWS.map(([k,t])=>`<button type="button" data-v="${k}" aria-pressed="${st.view===k}">${t}</button>`).join("");
+  $("gates").innerHTML=Object.keys(GATES).map(g=>`<button type="button" data-g="${g}" aria-pressed="${st.gate===g}">${g}<small>${GATES[g]}</small></button>`).join("");
+  render();
+}
+function n(){return st.gate==="NOT"?1:2}
+function result(){return st.gate==="NOT"?fn.NOT(st.in[0]):fn[st.gate](st.in[0],st.in[1])}
+
+function render(){
+  const sc=S[st.gate][st.view], k=n(), r=result();
+  $("rule").innerHTML=sc.rule;
+  $("gate").textContent=st.gate;
+  $("ins").innerHTML=sc.ins.slice(0,k).map((x,i)=>
+    `<button type="button" class="in" data-i="${i}" aria-pressed="${!!st.in[i]}">
+       <span class="lbl"><span>${x[0]}</span><span class="bit">${st.in[i]}</span></span>
+       <span class="tog"><span class="sw"></span>${st.in[i]?x[1]:x[2]}</span>
+     </button>`).join("");
+  const o=$("out"); o.classList.toggle("on",!!r); o.style.color="var(--fg)";
+  o.innerHTML=ICON[sc.icon](r)+`<span class="big">${r?sc.out[1]:sc.out[2]}</span><span class="bit">vastus ${r}</span>`;
+  const h=$("hint"); if(sc.hint){h.innerHTML=sc.hint;h.hidden=false}else h.hidden=true;
+  $("tl").textContent=st.view==="signaal"?"Tõeväärtustabel":"Kõik võimalused";
+  const heads=(sc.short||sc.ins.map(x=>x[0])).slice(0,k);
+  let rows=[]; for(let m=0;m<(1<<k);m++){const v=k===1?[m]:[m>>1&1,m&1]; rows.push(v)}
+  $("tbl").innerHTML=`<tr>${heads.map(h=>`<th>${h}</th>`).join("")}<th>${sc.col}</th></tr>`+
+    rows.map(v=>{const out=k===1?fn.NOT(v[0]):fn[st.gate](v[0],v[1]);
+      const cur=v.every((b,i)=>b===st.in[i]);
+      return `<tr class="${cur?"cur":""}" data-r="${v.join("")}">${v.map(b=>`<td>${b}</td>`).join("")}<td class="o">${out}</td></tr>`}).join("");
+}
+
+document.addEventListener("click",e=>{
+  const v=e.target.closest("[data-v]"), g=e.target.closest("[data-g]"), i=e.target.closest("[data-i]"), r=e.target.closest("[data-r]");
+  if(v){st.view=v.dataset.v;save();build()}
+  else if(g){st.gate=g.dataset.g;save();build()}
+  else if(i){const x=+i.dataset.i; st.in[x]=st.in[x]?0:1; render()}
+  else if(r){r.dataset.r.split("").forEach((b,x)=>st.in[x]=+b); render()}
+});
+
+/* Real keyboard in "Arvutis" view: Ctrl+C for AND, Enter for OR */
+function key(e,down){
+  if(st.view!=="arvuti")return;
+  if(st.gate==="AND"){
+    if(e.key==="Control"){st.in[0]=down?1:0;render()}
+    else if(e.key&&e.key.toLowerCase()==="c"){st.in[1]=down?1:0;if(!down)st.in[0]=e.ctrlKey?1:st.in[0];render()}
+  } else if(st.gate==="OR" && e.key==="Enter" && !(e.target.closest&&e.target.closest("button"))){
+    st.in[0]=down?1:0;render();
+  }
+}
+addEventListener("keydown",e=>key(e,true));
+addEventListener("keyup",e=>key(e,false));
+addEventListener("blur",()=>{if(st.view==="arvuti"&&st.gate!=="NOT"){st.in=[0,0];render()}});
+
+build();
+})();
+</script>
+
+</body></html>
